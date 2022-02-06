@@ -41,4 +41,51 @@ def register():
     return jsonify({"message": "Fill all the fields"}), 400
 
 
+@authentication.route("/registered_users", methods=["GET"])
+def registered_users():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users")
+    a = cur.fetchall()
 
+    data = []
+
+    for user_details in a:
+        user = {
+            "id": user_details[0],
+            "username": user_details[1],
+            "email": user_details[2],
+            "password": user_details[3],
+            "sec_question": user_details[4],
+            "sec_answer": user_details[5],
+            "uid": user_details[6]
+        }
+
+        data.append(user)
+
+    cur.close()
+    return jsonify({"data": data})
+
+
+@authentication.route("/login", methods=["GET"])
+def login():
+    email = request.headers.get("email") or request.args.get("email")
+    password = request.headers.get("password") or request.args.get("password")
+
+    if email and password:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT EXISTS(SELECT * FROM users WHERE email=%s and password=%s)", ([email], [password]))
+        exists = cur.fetchone()
+
+        if exists[0] == 1:
+            cur.execute("SELECT * FROM users WHERE email = %s", [email])
+            data = cur.fetchall()
+            return jsonify({
+                "message": "User logged in successfully",
+                "username": data[0][1],
+                "email": data[0][2],
+                "uid": data[0][6]
+            }), 200
+
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    return jsonify({"message": "Fill all the fields"}), 400

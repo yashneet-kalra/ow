@@ -11,6 +11,7 @@ def setup_db(app):
     app.config['MYSQL_PASSWORD'] = 'lWrGY6ZNE6'
     app.config['MYSQL_DB'] = 'sql6470760'
     app.config['MYSQL_PORT'] = 3306
+    app.config['JSON_SORT_KEYS'] = False
 
     mysql.init_app(app)
 
