@@ -3,13 +3,15 @@ from flask_cors import CORS
 from setup import setup_db
 from routes.authentication import authentication
 from routes.count import count
+from routes.stories import stories
 
 
 app = Flask(__name__)
 
 # Blueprints-------------------------------------------------------------/
 app.register_blueprint(authentication, url_prefix="/authentication")
-app.register_blueprint(count,url_prefix="/count")
+app.register_blueprint(count, url_prefix="/count")
+app.register_blueprint(stories, url_prefix="/stories")
 
 
 CORS(app)

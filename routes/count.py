@@ -10,5 +10,5 @@ def count_index():
     cur = mysql.connection.cursor()
     cur.execute("SELECT COUNT(id) FROM users")
     data = cur.fetchone()
-
+    cur.close()
     return jsonify({"count": data})
