@@ -58,3 +58,30 @@ def get_all_stories():
         )
 
     return jsonify({"data": stories_data})
+
+
+@stories.route("/get_story", methods=['GET'])
+def get_story():
+    user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
+
+    if user_uid:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, suid, story, location, date_created FROM stories WHERE user_uid=%s ORDER BY id DESC", [user_uid])
+        data = cur.fetchall()
+        cur.close()
+        stories_data = []
+
+        for record in data:
+            stories_data.append(
+                {
+                    "id": record[0],
+                    "suid": record[1],
+                    "story": record[2],
+                    "location": record[3],
+                    "date_created": record[4].strftime('%a,%e-%b-%Y')
+                }
+            )
+
+        return jsonify({"data": stories_data})
+
+    return jsonify({"message": "Fill all the details"})
