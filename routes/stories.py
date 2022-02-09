@@ -9,7 +9,7 @@ stories = Blueprint("stories", __name__)
 
 @stories.route("/")
 def index():
-    return "Welcome to the STORIES API section of OverWatch APIs"
+    return "Welcome to the STORIES API section of OverWatch APIs", 200
 
 
 @stories.route("/post_story", methods=['POST'])
@@ -30,9 +30,9 @@ def post_story():
         )
         mysql.connection.commit()
         cur.close()
-        return jsonify({"message": "Story stored successfully"})
+        return jsonify({"message": "Story stored successfully"}), 200
 
-    return jsonify({"message": "Fill all the fields"})
+    return jsonify({"message": "Fill all the fields"}), 400
 
 
 @stories.route("/get_all_stories", methods=['GET'])
@@ -57,7 +57,7 @@ def get_all_stories():
             }
         )
 
-    return jsonify({"data": stories_data})
+    return jsonify({"data": stories_data}), 200
 
 
 @stories.route("/get_story", methods=['GET'])
@@ -82,9 +82,9 @@ def get_story():
                 }
             )
 
-        return jsonify({"data": stories_data})
+        return jsonify({"data": stories_data}), 200
 
-    return jsonify({"message": "Fill all the details"})
+    return jsonify({"message": "Fill all the details"}), 400
 
 
 @stories.route("/delete_story", methods=['DELETE'])
@@ -97,6 +97,42 @@ def delete_story():
         mysql.connection.commit()
         cur.close()
 
-        return jsonify({"message": "Story deleted successfully"})
+        return jsonify({"message": "Story deleted successfully"}), 200
 
-    return jsonify({"message": "Fill all the required fields"})
+    return jsonify({"message": "Fill all the required fields"}), 400
+
+
+@stories.route("/update_story", methods=['POST'])
+def update_story():
+    suid = request.headers.get("suid") or request.args.get("suid")
+    story = request.headers.get("story") or request.args.get("story")
+    location = request.headers.get("location") or request.args.get("location")
+
+    if suid and story and location:
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "UPDATE stories SET story= %s, location= %s WHERE suid= %s",
+            ([story], [location], [suid])
+        )
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Story and Location updated successfully"}), 200
+
+    elif suid and story and not location:
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE stories SET story= %s WHERE suid= %s", ([story], [suid]))
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Story updated successfully"}), 200
+
+    elif suid and location and not story:
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE stories SET location= %s WHERE suid= %s", ([location], [suid]))
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Location updated successfully"}), 200
+
+    return jsonify({"message": "Fill all the required fields"}), 400
