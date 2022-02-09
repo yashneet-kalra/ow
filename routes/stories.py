@@ -33,3 +33,28 @@ def post_story():
         return jsonify({"message": "Story stored successfully"})
 
     return jsonify({"message": "Fill all the fields"})
+
+
+@stories.route("/get_all_stories", methods=['GET'])
+def get_all_stories():
+    cur = mysql.connection.cursor()
+    cur.execute(
+        "SELECT stories.id, stories.suid, stories.story, stories.location, stories.date_created, users.username, \
+        users.email FROM stories INNER JOIN users ON stories.user_uid=users.uid ORDER BY id DESC"
+    )
+    data = cur.fetchall()
+    stories_data = []
+    for record in data:
+        stories_data.append(
+            {
+                "id": record[0],
+                "suid": record[1],
+                "story": record[2],
+                "location": record[3],
+                "date_created": record[4].strftime('%a,%e-%b-%Y'),
+                "username": record[5],
+                "email": record[6]
+            }
+        )
+
+    return jsonify({"data": stories_data})
