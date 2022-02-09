@@ -85,3 +85,18 @@ def get_story():
         return jsonify({"data": stories_data})
 
     return jsonify({"message": "Fill all the details"})
+
+
+@stories.route("/delete_story", methods=['DELETE'])
+def delete_story():
+    suid = request.headers.get("suid") or request.args.get("suid")
+
+    if suid:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM stories WHERE suid=%s", [suid])
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify({"message": "Story deleted successfully"})
+
+    return jsonify({"message": "Fill all the required fields"})
