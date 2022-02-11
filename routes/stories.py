@@ -17,16 +17,17 @@ def post_story():
     story = request.headers.get("story") or request.args.get("story")
     location = request.headers.get("location") or request.args.get("location")
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
+    incident_date = request.headers.get("incident_date") or request.args.get("incident_date")
 
     date_created = datetime.date.today().strftime('%Y-%m-%d')
 
     suid = uuid.uuid4()
 
-    if story and location and date_created and user_uid:
+    if story and location and date_created and user_uid and incident_date:
         cur = mysql.connection.cursor()
         cur.execute(
-            "INSERT INTO stories VALUES (NULL, %s, %s, %s, %s, %s)",
-            ([suid], [story], [location], [date_created], [user_uid])
+            "INSERT INTO stories VALUES (NULL, %s, %s, %s, %s, %s, NULL, %s)",
+            ([suid], [story], [location], [date_created], [user_uid], [incident_date])
         )
         mysql.connection.commit()
         cur.close()
@@ -39,8 +40,9 @@ def post_story():
 def get_all_stories():
     cur = mysql.connection.cursor()
     cur.execute(
-        "SELECT stories.id, stories.suid, stories.story, stories.location, stories.date_created, users.username, \
-        users.email FROM stories INNER JOIN users ON stories.user_uid=users.uid ORDER BY id DESC"
+        "SELECT stories.id, stories.suid, stories.story, stories.location, stories.date_created, stories.incident_date,\
+         stories.edited, users.username, users.email FROM stories INNER JOIN users ON stories.user_uid=users.uid \
+         ORDER BY id DESC"
     )
     data = cur.fetchall()
     stories_data = []
@@ -52,8 +54,10 @@ def get_all_stories():
                 "story": record[2],
                 "location": record[3],
                 "date_created": record[4].strftime('%a,%e-%b-%Y'),
-                "username": record[5],
-                "email": record[6]
+                "incident_date": record[5],
+                "edited": record[6],
+                "username": record[7],
+                "email": record[8]
             }
         )
 
@@ -66,7 +70,11 @@ def get_story():
 
     if user_uid:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT id, suid, story, location, date_created FROM stories WHERE user_uid=%s ORDER BY id DESC", [user_uid])
+        cur.execute(
+            "SELECT id, suid, story, location, date_created, incident_date, edited \
+            FROM stories WHERE user_uid=%s ORDER BY id DESC",
+            [user_uid]
+        )
         data = cur.fetchall()
         cur.close()
         stories_data = []
@@ -78,7 +86,9 @@ def get_story():
                     "suid": record[1],
                     "story": record[2],
                     "location": record[3],
-                    "date_created": record[4].strftime('%a,%e-%b-%Y')
+                    "date_created": record[4].strftime('%a,%e-%b-%Y'),
+                    "incident_date": record[5],
+                    "edited": record[6]
                 }
             )
 
@@ -111,7 +121,7 @@ def update_story():
     if suid and story and location:
         cur = mysql.connection.cursor()
         cur.execute(
-            "UPDATE stories SET story= %s, location= %s WHERE suid= %s",
+            "UPDATE stories SET story= %s, location= %s, edited='YES' WHERE suid= %s",
             ([story], [location], [suid])
         )
         mysql.connection.commit()
