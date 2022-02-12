@@ -80,6 +80,7 @@ def login():
             cur.execute("SELECT * FROM users WHERE email = %s", [email])
             data = cur.fetchall()
             return jsonify({
+                "status": 200,
                 "message": "User logged in successfully",
                 "username": data[0][1],
                 "email": data[0][2],
