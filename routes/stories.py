@@ -20,13 +20,15 @@ def post_story():
     incident_date = request.headers.get("incident_date") or request.args.get("incident_date")
 
     date_created = datetime.date.today().strftime('%Y-%m-%d')
+    incident_date = datetime.datetime.strptime(incident_date, '%Y-%m-%d')
 
     suid = uuid.uuid4()
 
     if story and location and date_created and user_uid and incident_date:
         cur = mysql.connection.cursor()
         cur.execute(
-            "INSERT INTO stories VALUES (NULL, %s, %s, %s, %s, %s, NULL, %s)",
+            "INSERT INTO stories (suid, story, location, date_created, user_uid, incident_date) \
+            VALUES (%s, %s, %s, %s, %s, %s)",
             ([suid], [story], [location], [date_created], [user_uid], [incident_date])
         )
         mysql.connection.commit()
@@ -54,7 +56,7 @@ def get_all_stories():
                 "story": record[2],
                 "location": record[3],
                 "date_created": record[4].strftime('%a,%e-%b-%Y'),
-                "incident_date": record[5],
+                "incident_date": record[5].strftime('%a,%e-%b-%Y'),
                 "edited": record[6],
                 "username": record[7],
                 "email": record[8]
@@ -87,7 +89,7 @@ def get_story():
                     "story": record[2],
                     "location": record[3],
                     "date_created": record[4].strftime('%a,%e-%b-%Y'),
-                    "incident_date": record[5],
+                    "incident_date": record[5].strftime('%a,%e-%b-%Y'),
                     "edited": record[6]
                 }
             )
@@ -131,7 +133,7 @@ def update_story():
 
     elif suid and story and not location:
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE stories SET story= %s WHERE suid= %s", ([story], [suid]))
+        cur.execute("UPDATE stories SET story= %s, edited='YES' WHERE suid= %s", ([story], [suid]))
         mysql.connection.commit()
         cur.close()
 
@@ -139,7 +141,7 @@ def update_story():
 
     elif suid and location and not story:
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE stories SET location= %s WHERE suid= %s", ([location], [suid]))
+        cur.execute("UPDATE stories SET location= %s, edited='YES' WHERE suid= %s", ([location], [suid]))
         mysql.connection.commit()
         cur.close()
 
