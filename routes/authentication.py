@@ -44,7 +44,7 @@ def register():
 @authentication.route("/registered_users", methods=["GET"])
 def registered_users():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM users order by id")
+    cur.execute("SELECT * FROM users order by id DESC")
     a = cur.fetchall()
 
     data = []
