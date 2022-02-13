@@ -11,13 +11,19 @@ def count_index():
     cur.execute("SELECT COUNT(id) FROM users")
     users_count = cur.fetchone()
     # data = {"users_count": cur.fetchone()}
+
     cur.execute("SELECT COUNT(id) FROM stories")
     stories_count = cur.fetchone()
     # data["stories_count"] = cur.fetchone()
+
+    cur.execute("SELECT COUNT(id) FROM zones")
+    zones_count = cur.fetchone()
+
     cur.close()
     return jsonify(
         {
             "users_count": users_count[0],
-            "stories_count": stories_count[0]
+            "stories_count": stories_count[0],
+            "zones_count": zones_count[0]
         }
     )
