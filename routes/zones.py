@@ -15,24 +15,40 @@ def post_zone():
     latitude = request.headers.get("latitude") or request.args.get("latitude")
     longitude = request.headers.get("longitude") or request.args.get("longitude")
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
+    loc_name = request.headers.get("loc_name") or request.args.get("loc_name")
 
     zuid = uuid.uuid4()
 
     if latitude and longitude and user_uid:
         cur = mysql.connection.cursor()
-        cur.execute(
-            "INSERT INTO zones (latitude, longitude, zuid, user_uid) VALUES (%s, %s, %s, %s)",
-            ([latitude], [longitude], [zuid], [user_uid])
-        )
-        mysql.connection.commit()
-        cur.close()
+        if loc_name:
+            cur.execute(
+                "INSERT INTO zones (latitude, longitude, zuid, user_uid, loc_name) VALUES (%s, %s, %s, %s, %s)",
+                ([latitude], [longitude], [zuid], [user_uid], [loc_name])
+            )
+            mysql.connection.commit()
+            cur.close()
 
-        return jsonify(
-            {
-                "message": "Zone stored successfully",
-                "status": 200
-            }
-        ), 200
+            return jsonify(
+                {
+                    "message": "Zone with loc_name stored successfully",
+                    "status": 200
+                }
+            ), 200
+        else:
+            cur.execute(
+                "INSERT INTO zones (latitude, longitude, zuid, user_uid) VALUES (%s, %s, %s, %s)",
+                ([latitude], [longitude], [zuid], [user_uid])
+            )
+            mysql.connection.commit()
+            cur.close()
+
+            return jsonify(
+                {
+                    "message": "Zone stored successfully",
+                    "status": 200
+                }
+            ), 200
 
     return jsonify(
         {
@@ -56,7 +72,8 @@ def get_all_zones():
                 "latitude": record[1],
                 "longitude": record[2],
                 "zuid": record[3],
-                "user_uid": record[4]
+                "user_uid": record[4],
+                "loc_name": record[5]
             }
         )
 
@@ -84,7 +101,8 @@ def get_user_zones():
                     "id": record[0],
                     "latitude": record[1],
                     "longitude": record[2],
-                    "zuid": record[3]
+                    "zuid": record[3],
+                    "loc_name": record[4]
                 }
             )
 
