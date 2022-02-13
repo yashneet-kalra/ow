@@ -66,3 +66,28 @@ def get_all_zones():
             "status": 200
         }
     ), 200
+
+
+@zones.route("/delete_zone", methods=['DELETE'])
+def delete_zone():
+    zuid = request.headers.get("zuid") or request.args.get("zuid")
+
+    if zuid:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM zones WHERE zuid=%s", [zuid])
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify(
+            {
+                "message": "Zone deleted successfully",
+                "status": 200
+            }
+        ), 200
+
+    return jsonify(
+        {
+            "message": "Fill all the required fields",
+            "status": 400
+        }
+    ), 400
