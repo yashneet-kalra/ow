@@ -68,6 +68,41 @@ def get_all_zones():
     ), 200
 
 
+@zones.route("/get_user_zones", methods=['GET'])
+def get_user_zones():
+    user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
+
+    if user_uid:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM zones WHERE user_uid=%s ORDER BY id DESC", [user_uid])
+        data = cur.fetchall()
+
+        final_data = []
+        for record in data:
+            final_data.append(
+                {
+                    "id": record[0],
+                    "latitude": record[1],
+                    "longitude": record[2],
+                    "zuid": record[3]
+                }
+            )
+
+        return jsonify(
+            {
+                "message": final_data,
+                "status": 200
+            }
+        ), 200
+
+    return jsonify(
+        {
+            "message": "Fill all the required fields",
+            "status": 400
+        }
+    ), 400
+
+
 @zones.route("/delete_zone", methods=['DELETE'])
 def delete_zone():
     zuid = request.headers.get("zuid") or request.args.get("zuid")
