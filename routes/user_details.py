@@ -58,7 +58,7 @@ def index():
                     "latitude": record[1],
                     "longitude": record[2],
                     "zuid": record[3],
-                    "loc_name": record[4]
+                    "loc_name": record[5]
                 }
             )
 
