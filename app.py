@@ -6,6 +6,7 @@ from routes.count import count
 from routes.stories import stories
 from routes.zones import zones
 from routes.forgot_password import forgot_password
+from routes.user_details import user_details
 
 
 app = Flask(__name__)
@@ -16,7 +17,7 @@ app.register_blueprint(count, url_prefix="/count")
 app.register_blueprint(stories, url_prefix="/stories")
 app.register_blueprint(zones, url_prefix="/zones")
 app.register_blueprint(forgot_password, url_prefix="/forgot_password")
-
+app.register_blueprint(user_details, url_prefix="/user_details")
 
 CORS(app)
 
