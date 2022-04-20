@@ -7,11 +7,11 @@ mysql = MySQL()
 def setup_db(app):
 
     app.config['SECRET_KEY'] = 'TLS_AES_256_GCM_SHA384'
-    app.config['MYSQL_HOST'] = 'sql6.freemysqlhosting.net'
-    app.config['MYSQL_USER'] = 'sql6472445'
-    app.config['MYSQL_PASSWORD'] = 'JSfi1hytFD'
-    app.config['MYSQL_DB'] = 'sql6472445'
-    app.config['MYSQL_PORT'] = 3306
+    app.config['MYSQL_HOST'] = 'overwatch-db-do-user-10414546-0.b.db.ondigitalocean.com'
+    app.config['MYSQL_USER'] = 'doadmin'
+    app.config['MYSQL_PASSWORD'] = 'AVNS_9vnkKwrkRGiq8_j'
+    app.config['MYSQL_DB'] = 'defaultdb'
+    app.config['MYSQL_PORT'] = 25060
     app.config['JSON_SORT_KEYS'] = False
 
     mysql.init_app(app)
