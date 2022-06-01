@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from setup import mysql
+from setup_psql import setup_psql_db
 import uuid
 
 zones = Blueprint("zones", __name__)
@@ -17,17 +17,19 @@ def post_zone():
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
     loc_name = request.headers.get("loc_name") or request.args.get("loc_name")
 
-    zuid = uuid.uuid4()
+    zuid = str(uuid.uuid4())
 
     if latitude and longitude and user_uid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         if loc_name:
             cur.execute(
                 "INSERT INTO zones (latitude, longitude, zuid, user_uid, loc_name) VALUES (%s, %s, %s, %s, %s)",
-                ([latitude], [longitude], [zuid], [user_uid], [loc_name])
+                (latitude, longitude, zuid, user_uid, loc_name)
             )
-            mysql.connection.commit()
+            conn.commit()
             cur.close()
+            conn.close()
 
             return jsonify(
                 {
@@ -38,10 +40,11 @@ def post_zone():
         else:
             cur.execute(
                 "INSERT INTO zones (latitude, longitude, zuid, user_uid) VALUES (%s, %s, %s, %s)",
-                ([latitude], [longitude], [zuid], [user_uid])
+                (latitude, longitude, zuid, user_uid)
             )
-            mysql.connection.commit()
+            conn.commit()
             cur.close()
+            conn.close()
 
             return jsonify(
                 {
@@ -60,7 +63,8 @@ def post_zone():
 
 @zones.route("/get_all_zones", methods=['GET'])
 def get_all_zones():
-    cur = mysql.connection.cursor()
+    conn = setup_psql_db()
+    cur = conn.cursor()
     cur.execute("SELECT * FROM zones ORDER BY id DESC")
     data = cur.fetchall()
 
@@ -77,6 +81,8 @@ def get_all_zones():
             }
         )
 
+    cur.close()
+    conn.close()
     return jsonify(
         {
             "data": final_data,
@@ -90,7 +96,8 @@ def get_user_zones():
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
 
     if user_uid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute("SELECT * FROM zones WHERE user_uid=%s ORDER BY id DESC", [user_uid])
         data = cur.fetchall()
 
@@ -105,6 +112,9 @@ def get_user_zones():
                     "loc_name": record[4]
                 }
             )
+
+        cur.close()
+        conn.close()
 
         return jsonify(
             {
@@ -126,10 +136,12 @@ def delete_zone():
     zuid = request.headers.get("zuid") or request.args.get("zuid")
 
     if zuid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute("DELETE FROM zones WHERE zuid=%s", [zuid])
-        mysql.connection.commit()
+        conn.commit()
         cur.close()
+        conn.close()
 
         return jsonify(
             {
