@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from setup import mysql
+from setup_psql import setup_psql_db
 import uuid
 import datetime
 
@@ -23,17 +23,19 @@ def post_story():
     date_created = datetime.date.today().strftime('%Y-%m-%d')
     incident_date = datetime.datetime.strptime(incident_date, '%Y-%m-%d')
 
-    suid = uuid.uuid4()
+    suid = str(uuid.uuid4())
 
     if story and location and date_created and user_uid and incident_date and anonymity:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute(
             "INSERT INTO stories (suid, story, location, date_created, user_uid, incident_date, anonymity) \
             VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            ([suid], [story], [location], [date_created], [user_uid], [incident_date], [anonymity])
+            (suid, story, location, date_created, user_uid, incident_date, anonymity)
         )
-        mysql.connection.commit()
+        conn.commit()
         cur.close()
+        conn.close()
         return jsonify({"message": "Story stored successfully"}), 200
 
     return jsonify({"message": "Fill all the fields"}), 400
@@ -41,7 +43,8 @@ def post_story():
 
 @stories.route("/get_all_stories", methods=['GET'])
 def get_all_stories():
-    cur = mysql.connection.cursor()
+    conn = setup_psql_db()
+    cur = conn.cursor()
     cur.execute(
         "SELECT stories.id, stories.suid, stories.story, stories.location, stories.date_created, stories.incident_date,\
          stories.edited, stories.anonymity, users.username, users.email FROM stories INNER JOIN users \
@@ -65,6 +68,9 @@ def get_all_stories():
             }
         )
 
+    cur.close()
+    conn.close()
+
     return jsonify({"data": stories_data}), 200
 
 
@@ -73,14 +79,18 @@ def get_story():
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
 
     if user_uid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute(
             "SELECT id, suid, story, location, date_created, incident_date, edited, anonymity \
             FROM stories WHERE user_uid=%s ORDER BY id DESC",
             [user_uid]
         )
         data = cur.fetchall()
+
         cur.close()
+        conn.close()
+
         stories_data = []
 
         for record in data:
@@ -107,10 +117,13 @@ def delete_story():
     suid = request.headers.get("suid") or request.args.get("suid")
 
     if suid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute("DELETE FROM stories WHERE suid=%s", [suid])
-        mysql.connection.commit()
+        conn.commit()
+
         cur.close()
+        conn.close()
 
         return jsonify({"message": "Story deleted successfully"}), 200
 
@@ -124,29 +137,38 @@ def update_story():
     location = request.headers.get("location") or request.args.get("location")
 
     if suid and story and location:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute(
             "UPDATE stories SET story= %s, location= %s, edited='YES' WHERE suid= %s",
-            ([story], [location], [suid])
+            (story, location, suid)
         )
-        mysql.connection.commit()
+
+        conn.commit()
         cur.close()
+        conn.close()
 
         return jsonify({"message": "Story and Location updated successfully"}), 200
 
     elif suid and story and not location:
-        cur = mysql.connection.cursor()
-        cur.execute("UPDATE stories SET story= %s, edited='YES' WHERE suid= %s", ([story], [suid]))
-        mysql.connection.commit()
+        conn = setup_psql_db()
+        cur = conn.cursor()
+        cur.execute("UPDATE stories SET story= %s, edited='YES' WHERE suid= %s", (story, suid))
+
+        conn.commit()
         cur.close()
+        conn.close()
 
         return jsonify({"message": "Story updated successfully"}), 200
 
     elif suid and location and not story:
-        cur = mysql.connection.cursor()
-        cur.execute("UPDATE stories SET location= %s, edited='YES' WHERE suid= %s", ([location], [suid]))
-        mysql.connection.commit()
+        conn = setup_psql_db()
+        cur = conn.cursor()
+        cur.execute("UPDATE stories SET location= %s, edited='YES' WHERE suid= %s", (location, suid))
+        conn.commit()
+
         cur.close()
+        conn.close()
 
         return jsonify({"message": "Location updated successfully"}), 200
 
