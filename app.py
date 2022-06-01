@@ -23,6 +23,10 @@ app.register_blueprint(user_details, url_prefix="/user_details")
 CORS(app)
 
 
+@app.route("/")
+def index():
+    return "OverWatch App is up and running successfully."
+
 # setup_db(app)
 
 # setup_psql_db()

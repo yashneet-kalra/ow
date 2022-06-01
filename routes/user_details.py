@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from setup import mysql
+from setup_psql import setup_psql_db
 
 
 user_details = Blueprint("user_details", __name__)
@@ -10,7 +10,8 @@ def index():
     user_uid = request.headers.get("user_uid") or request.args.get("user_uid")
 
     if user_uid:
-        cur = mysql.connection.cursor()
+        conn = setup_psql_db()
+        cur = conn.cursor()
         cur.execute("SELECT username, email FROM users WHERE uid=%s", [user_uid])
         user_data = cur.fetchall()
         print(user_data)
@@ -62,6 +63,9 @@ def index():
                 }
             )
 
+        cur.close()
+        conn.close()
+
         return jsonify(
             {
                 "user_details": final_user_data,
@@ -72,7 +76,7 @@ def index():
 
     return jsonify(
         {
-            "message": "Fill all the reuqired fields",
+            "message": "Fill all the required fields",
             "status": 400
         }
     ), 400
