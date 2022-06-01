@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from setup import setup_db
+# from setup import setup_db
+# from setup_psql import setup_psql_db
 from routes.authentication import authentication
 from routes.count import count
 from routes.stories import stories
@@ -22,7 +23,13 @@ app.register_blueprint(user_details, url_prefix="/user_details")
 CORS(app)
 
 
-setup_db(app)
+@app.route("/")
+def index():
+    return "OverWatch App is up and running successfully."
+
+# setup_db(app)
+
+# setup_psql_db()
 
 
 if __name__ == '__main__':
